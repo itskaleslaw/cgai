@@ -27,7 +27,8 @@ float sdfSphere(vec3 p, vec3 c, float r)
 {
     //// your implementation starts
     
-    return 0.0;
+    float dist = distance(p, c) - r;
+    return dist;
     
     //// your implementation ends
 }
@@ -37,7 +38,7 @@ float sdfPlane(vec3 p, float h)
 {
     //// your implementation starts
     
-    return 0.0;
+    return p.y - h;
     
     //// your implementation ends
 }
@@ -47,9 +48,17 @@ float sdfBox(vec3 p, vec3 c, vec3 b)
 {
     //// your implementation starts
     
-    return 0.0;
+    vec3 d = abs(p - c) - b;
+    return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
     
     //// your implementation ends
+}
+
+float sdfCapsule( vec3 p, vec3 a, vec3 b, float r )
+{
+  vec3 pa = p - a, ba = b - a;
+  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+  return length( pa - ba*h ) - r;
 }
 
 /////////////////////////////////////////////////////
@@ -65,7 +74,7 @@ float sdfIntersection(float s1, float s2)
 {
     //// your implementation starts
     
-    return s1;
+    return max(s1, s2);
 
     //// your implementation ends
 }
@@ -74,7 +83,7 @@ float sdfUnion(float s1, float s2)
 {
     //// your implementation starts
     
-    return s1;
+    return min(s1, s2);
 
     //// your implementation ends
 }
@@ -83,7 +92,7 @@ float sdfSubtraction(float s1, float s2)
 {
     //// your implementation starts
     
-    return s1;
+    return max(s1, -s2);
 
     //// your implementation ends
 }
@@ -130,8 +139,37 @@ float sdf(vec3 p)
     //// calculate the sdf based on all objects in the scene
     
     //// your implementation starts
-    
+    float sdf1 = sdfPlane(p, plane1_h);
+    float sdf2 = sdfSphere(p, sphere1_c, sphere1_r);
+    float sdf3 = sdfBox(p, box1_c, box1_b);
+    float sdf4 = sdfSubtraction(sdfBox(p, box2_c, box2_b), sdfSphere(p, sphere2_c, sphere2_r));
+    float sdf5 = sdfIntersection(sdfSphere(p, sphere3_c, sphere3_r), sdfSphere(p, sphere4_c, sphere4_r));
 
+    s = sdfUnion(sdfUnion(sdf1, sdf2), sdfUnion(sdf3, sdf4));
+    s = sdfUnion(s, sdf5);
+
+    //// your implementation ends
+
+    return s;
+}
+
+/////////////////////////////////////////////////////
+//// Step 7: creative expression
+//// You will create your customized sdf scene with new primitives and CSG operations in the sdf2 function.
+//// Call sdf2 in your ray marching function to render your customized scene.
+/////////////////////////////////////////////////////
+
+//// sdf2: p - query point
+float sdf2(vec3 p)
+{
+    float s = 0.;
+
+    //// your implementation starts
+    float s1 = sdfCapsule(p, vec3(-0.5, 0.8, -0.5), vec3(-0.5, 1.2, -0.5), 0.3);
+    float s2 = sdfCapsule(p, vec3(-0.32, 0.4, -0.5), vec3(-0.32, 0.8, -0.5), 0.1);
+    float s3 = sdfCapsule(p, vec3(-0.68, 0.4, -0.5), vec3(-0.68, 0.8, -0.5), 0.1);
+    float s4 = sdfCapsule(p, vec3(-0.35, 1.05, -0.7), vec3(-0.65, 1.05, -0.7), 0.15);
+    s = sdfUnion(sdfUnion(s1, s2), sdfUnion(s3, s4));
     //// your implementation ends
 
     return s;
@@ -150,14 +188,19 @@ float sdf(vec3 p)
 float rayMarching(vec3 origin, vec3 dir)
 {
     float s = 0.0;
+    float t = 0.0;
     for(int i = 0; i < 100; i++)
     {
         //// your implementation starts
-
+        vec3 p = origin + dir * t;
+        s = sdf2(p);
+        if (s < 0.01) break;
+        t += s;
+        if (t > 100.0) return 100.0; // No intersection found within the maximum distance
         //// your implementation ends
     }
     
-    return s;
+    return t;
 }
 
 /////////////////////////////////////////////////////
@@ -172,14 +215,18 @@ float rayMarching(vec3 origin, vec3 dir)
 //// normal: p - query point
 vec3 normal(vec3 p)
 {
-    float s = sdf(p);          //// sdf value in p
+    float s = sdf2(p);          //// sdf value in p
     float dx = 0.01;           //// step size for finite difference
 
     //// your implementation starts
     
-    return vec3(0.0, 0.0, 0.0);
+    vec3 n = normalize(vec3(
+        sdf(p + vec3(dx, 0.0, 0.0)) - s,
+        sdf(p + vec3(0.0, dx, 0.0)) - s,
+        sdf(p + vec3(0.0, 0.0, dx)) - s
+    ));
 
-    //// your implementation ends
+    return n;
 }
 
 /////////////////////////////////////////////////////
@@ -215,32 +262,14 @@ vec3 phong_shading(vec3 p, vec3 n)
     float s = rayMarching(p + n * 0.02, l);
     if(s < length(lightPos - p)) dif *= .2;
 
-    vec3 color = vec3(1.0, 1.0, 1.0);
+    vec3 color = vec3(1.0, 0.18, 0.12);
+    
 
     //// your implementation for coloring starts
-
-
+    
     //// your implementation for coloring ends
 
     return (amb + dif + spec + sunDif) * color;
-}
-
-/////////////////////////////////////////////////////
-//// Step 7: creative expression
-//// You will create your customized sdf scene with new primitives and CSG operations in the sdf2 function.
-//// Call sdf2 in your ray marching function to render your customized scene.
-/////////////////////////////////////////////////////
-
-//// sdf2: p - query point
-float sdf2(vec3 p)
-{
-    float s = 0.;
-
-    //// your implementation starts
-
-    //// your implementation ends
-
-    return s;
 }
 
 /////////////////////////////////////////////////////
