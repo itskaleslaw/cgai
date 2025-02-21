@@ -113,9 +113,57 @@ float sdfCow(vec3 p)
     {
         return length(p) - 0.9;
     }
+    return 0.0;
 
-    //// your implementation starts
-
+    vec4 f0_0=sin(p.y*vec4(-2.54,-.51,3.25,.01)+p.z*vec4(-.46,-4.41,.35,-.07)+p.x*vec4(-2.65,.24,-.32,2.23)+vec4(.26,-.11,-1.35,.27));
+    vec4 f0_1=sin(p.y*vec4(3.39,.53,.11,-2.16)+p.z*vec4(1.62,4.20,1.00,1.06)+p.x*vec4(-3.10,1.68,.78,-1.86)+vec4(-.08,.48,-.69,-.96));
+    vec4 f0_2=sin(p.y*vec4(3.25,.22,-.92,-.41)+p.z*vec4(-3.68,-1.54,-2.28,.55)+p.x*vec4(-1.08,-2.85,-4.11,-1.36)+vec4(-.92,1.24,.36,1.20));
+    vec4 f0_3=sin(p.y*vec4(-3.93,-3.10,1.75,4.81)+p.z*vec4(-3.16,1.13,3.34,3.29)+p.x*vec4(2.42,-4.54,-4.41,.43)+vec4(-.38,.44,-.90,-.12));
+    vec4 f1_0=sin(mat4(.33,.07,-.66,.26,.94,.02,-.65,-1.20,.04,.90,-.14,-.45,-.36,1.00,.94,-1.05)*f0_0+
+        mat4(-1.33,-.92,.92,.10,.74,.78,.27,.12,-1.41,-.23,.80,.21,-1.04,1.01,.54,1.15)*f0_1+
+        mat4(.05,-.48,.46,-.15,-.27,-.76,-.07,-.33,.05,.26,.11,.07,.29,.44,-1.81,.65)*f0_2+
+        mat4(-.40,-1.15,-.42,.01,-.71,-.16,-.81,-.64,.25,.34,-.10,.71,-1.07,-.24,.47,.46)*f0_3+
+        vec4(-.38,1.23,2.06,-.01))/1.0+f0_0;
+    vec4 f1_1=sin(mat4(.13,.19,.41,-.06,.07,-.10,.09,-.21,-.02,.17,.26,.69,-1.27,.24,.28,-.21)*f0_0+
+        mat4(.13,-.15,.15,.18,-.38,.99,-.21,-.12,.10,1.07,.38,-.42,.23,.27,1.49,-.80)*f0_1+
+        mat4(-.67,.04,1.10,.83,.73,-.22,-.90,.29,.01,.36,-.08,.23,.08,-.35,-.36,-1.19)*f0_2+
+        mat4(.66,-.81,.39,.05,.57,-.48,.56,-.50,.19,-.10,.31,.48,-.83,-.06,.14,-.11)*f0_3+
+        vec4(.33,.82,.21,-.02))/1.0+f0_1;
+    vec4 f1_2=sin(mat4(.03,.69,.17,-.15,-1.09,-.78,1.12,.12,.36,-.14,.02,.85,.65,-.87,-1.10,.14)*f0_0+
+        mat4(.64,.14,.77,-.38,-.64,-.26,.65,-.43,-1.02,1.33,.76,1.16,.60,-.03,-.78,.07)*f0_1+
+        mat4(-.55,-.06,.90,-.01,-.87,.25,-.13,.58,-.30,-.17,-.25,.29,-.18,-.04,.36,-.32)*f0_2+
+        mat4(.37,-.17,.72,-.44,.19,-.18,.26,-.15,.68,.19,-1.26,.33,-.62,.14,.78,-.27)*f0_3+
+        vec4(.79,-1.25,-.18,.50))/1.0+f0_2;
+    vec4 f1_3=sin(mat4(-.13,.27,-.37,-.26,.19,-.12,-.03,-.27,.15,-.12,-.27,1.18,-.69,1.14,.10,1.39)*f0_0+
+        mat4(.09,-.54,.61,-.21,-.66,-.43,.37,-.73,1.64,-.63,-.16,-.36,.26,.32,-1.69,-.12)*f0_1+
+        mat4(-.06,-.38,-1.25,1.06,.02,-.54,.45,-.15,-.47,.02,-.16,-1.54,.31,-.83,.47,.12)*f0_2+
+        mat4(-.66,.05,.10,-.14,.19,-.77,-.09,-.45,-.13,.27,-.77,.40,-.35,-.31,.30,-.18)*f0_3+
+        vec4(.58,.80,-.84,.66))/1.0+f0_3;
+    vec4 f2_0=sin(mat4(-.62,1.25,.69,.79)*f1_0+
+        mat4(.90,.93,-.95,.91)*f1_1+
+        mat4(.89,-2.08,.35,2.33)*f1_2+
+        mat4(1.32,1.12,-1.00,.48)*f1_3+
+        vec4(1.20))/1.4+f1_0;
+    vec4 f2_1=sin(mat4()*f1_0+
+        mat4()*f1_1+
+        mat4()*f1_2+
+        mat4()*f1_3+
+        vec4())/1.4+f1_1;
+    vec4 f2_2=sin(mat4()*f1_0+
+        mat4()*f1_1+
+        mat4()*f1_2+
+        mat4()*f1_3+
+        vec4())/1.4+f1_2;
+    vec4 f2_3=sin(mat4()*f1_0+
+        mat4()*f1_1+
+        mat4()*f1_2+
+        mat4()*f1_3+
+        vec4())/1.4+f1_3;
+    return dot(f2_0,vec4(-.04,.08,.05,.05))+
+        dot(f2_1,vec4(.06,.06,-.06,.06))+
+        dot(f2_2,vec4(.06,-.14,.02,.16))+
+        dot(f2_3,vec4(.09,.07,-.07,.03))+
+        0.080;
     //// your implementation ends
 }
 
@@ -127,7 +175,7 @@ float sdfUnion(float d1, float d2)
 /////////////////////////////////////////////////////
 //// Step 3: scene sdf
 //// You are asked to use the sdf boolean operations to draw the bunny and the cow in the scene.
-//// The bunny is located in the ceter of vec3(-1.0, 1., 4.), and the cow is located in the center of vec3(1.0, 1., 4.).
+//// The bunny is located in the center of vec3(-1.0, 1., 4.), and the cow is located in the center of vec3(1.0, 1., 4.).
 /////////////////////////////////////////////////////
 
 //// sdf: p - query point
@@ -140,7 +188,11 @@ float sdf(vec3 p)
     //// calculate the sdf based on all objects in the scene
 
     //// your implementation starts
+    float dPlane = sdfPlane(p, plane_h);
+    float dBunny = sdfBunny(p - vec3(-1.0, 1.0, 4.0));
+    // float dCow = sdfCow(p - vec3(1.0, 1.0, 4.0));
 
+    s = sdfUnion(dPlane, dBunny);
     //// your implementation ends
 
     return s;
@@ -160,14 +212,20 @@ float sdf(vec3 p)
 float rayMarching(vec3 origin, vec3 dir)
 {
     float s = 0.0;
-
-    //// your implementation starts
-
-    //// your implementation ends
-
-    return s;
+    float t = 0.0;
+    for(int i = 0; i < 100; i++)
+    {
+        //// your implementation starts
+        vec3 p = origin + dir * t;
+        s = sdf(p);
+        if (s < 0.01) break;
+        t += s;
+        if (t > 100.0) return 100.0; // No intersection found within the maximum distance
+        //// your implementation ends
+    }
+    
+    return t;
 }
-
 /////////////////////////////////////////////////////
 //// normal calculation
 /////////////////////////////////////////////////////
@@ -185,8 +243,12 @@ vec3 normal(vec3 p)
     float dx = 0.01;           //// step size for finite difference
 
     //// your implementation starts
-
-    //// your implementation ends
+    
+    vec3 n = normalize(vec3(
+        sdf(p + vec3(dx, 0.0, 0.0)) - s,
+        sdf(p + vec3(0.0, dx, 0.0)) - s,
+        sdf(p + vec3(0.0, 0.0, dx)) - s
+    ));
 
     return n;
 }
@@ -230,7 +292,7 @@ vec3 phong_shading(vec3 p, vec3 n)
     vec3 color = vec3(1.0);
 
     //// your implementation starts
-    
+    color = vec3(1.0, 0.18, 0.12);
     //// your implementation ends
 
     return (amb + dif + spec + sunDif) * color;
