@@ -1,0 +1,1 @@
+For this assignment, I calculated color and density from sdf, setting the density depending on whether it was in the sdf or not. Then, for the CT, I converted the CT data into a vec4, then used the ray tracing algorithm to accumulate colors along each ray. For my creative expression, I was able to take a CT scan from online and render it using ray tracing.

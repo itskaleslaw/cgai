@@ -72,13 +72,13 @@ float sdBox(vec3 p, vec3 b)
 vec4 readSDFVolume(vec3 p)
 {
     //// sdf object
-    float distance = sdSphere(p, 1.0); 
-
-    //// convert sdf value to a color
+    float distance = sdSphere(p, 1.0);
 
     //// your implementation starts
 
-    return vec4(0.0, 0.0, 0.0, 0.0);
+    float density = distance < 0.0 ? 1.0 : 0.0;
+
+    return vec4(palette(-distance), density);
 
     //// your implementation ends
 }
@@ -103,10 +103,14 @@ vec4 readCTVolume(vec3 p)
     }
 
     //// your implementation starts
+    float density = texture(iVolume, tex_coord).r;
 
-    return vec4(0.0, 0.0, 0.0, 0.0);
+    vec3 color = palette(density);
 
+    vec4 result = vec4(color, density) * 1.5;
     //// your implementation ends
+
+    return result;
 }
 
 /////////////////////////////////////////////////////
@@ -134,7 +138,17 @@ vec4 volumeRendering(vec3 ro, vec3 rd, float near, float far, int n_samples)
 
         //// your implementation starts
 
+        vec4 sdfVolume = readSDFVolume(p - vec3(-2.0, 0.0, 0.0));
+        vec4 ctVolume = readCTVolume(p - vec3(2.0, 0.0, 0.0));
 
+        vec3 ci = sdfVolume.rgb + ctVolume.rgb;
+        float sigma_i = sdfVolume.a + ctVolume.a;
+
+        float alpha = 1.0 - exp(-sigma_i * stepSize);
+
+        color += transmittance * alpha * ci;
+
+        transmittance *= exp(-sigma_i * stepSize);
         //// your implementation ends
 
         //// early termination if opacity is high
